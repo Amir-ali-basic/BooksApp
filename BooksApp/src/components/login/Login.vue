@@ -10,18 +10,20 @@
             type="email"
             name="email"
             :required="true"
-            v-model="loginPresentable.email"
+            :value="loginPresentable.email"
+            @input="loginPresentable.email = $event.target.value"
           />
           <TextInput
             label="Password"
             type="password"
             name="password"
             :required="true"
-            v-model="loginPresentable.password"
+            :value="loginPresentable.password"
+            @input="loginPresentable.password = $event.target.value"
           />
 
           <hr />
-          <input type="submit" class="btn btn-primary" value="Login" />
+          <button type="submit" class="btn btn-primary">Login</button>
         </FormTag>
       </div>
     </div>
@@ -45,8 +47,10 @@ export default defineComponent({
     const loginStore = useLoginStore()
     const loginPresentable = loginStore.loginData
 
-    function submitHandler(event: any) {
-      console.log('submitHandler', event)
+    function submitHandler() {
+      console.log('submitHandler', loginPresentable)
+
+      loginStore.loginSubmitHandler(loginPresentable)
     }
 
     return {

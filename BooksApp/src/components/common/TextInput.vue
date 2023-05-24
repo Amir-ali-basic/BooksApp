@@ -11,12 +11,13 @@
       :value="value"
       :autocomplete="name + '-new'"
       class="form-control"
+      @input="handleInput"
     />
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { defineComponent, ref } from 'vue'
 
 export default defineComponent({
   name: 'TextInput',
@@ -30,9 +31,19 @@ export default defineComponent({
     value: String,
     label: String
   },
+  setup(props, { emit }) {
+    const inputValue = ref(props.value)
 
-  setup() {
-    return {}
+    const handleInput = (event: Event) => {
+      const target = event.target as HTMLInputElement
+      inputValue.value = target.value
+      emit('update:value', inputValue.value)
+    }
+
+    return {
+      inputValue,
+      handleInput
+    }
   }
 })
 </script>
