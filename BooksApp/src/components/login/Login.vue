@@ -49,7 +49,6 @@ export default defineComponent({
 
     function submitHandler() {
       console.log('submitHandler', loginPresentable)
-
       loginStore.loginSubmitHandler(loginPresentable)
     }
 

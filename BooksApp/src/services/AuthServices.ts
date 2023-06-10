@@ -1,15 +1,18 @@
-//fix any later
-export function login(payload: any) {
-  const requestOptions = {
-    method: 'POST',
-    body: JSON.stringify(payload)
-    // headers: {
-    //   'Content-Type': 'application/json'
-    // }
-  }
+// AuthServices.ts
+const requestConfig = {
+  basePath: 'http://localhost:8081'
+}
 
-  return fetch('http://localhost:8081/users/login', requestOptions)
-    .then((response) => response.json())
+export function login(payload: any) {
+  const requestOptions = createRequestOptions(payload)
+
+  return fetch(`${requestConfig.basePath}/users/login`, requestOptions)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('Request failed with status ' + response.status)
+      }
+      return response.json()
+    })
     .then((data) => {
       if (data.error) {
         console.log('Error:', data.message)
@@ -22,4 +25,14 @@ export function login(payload: any) {
       console.log('Error:', error)
       throw error
     })
+}
+
+function createRequestOptions(payload: any) {
+  return {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  }
 }
