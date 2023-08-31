@@ -4,11 +4,13 @@ import (
 	"net/http"
 )
 
+// jsonResponse is the type used for generic JSON responses
 type jsonResponse struct {
 	Error   bool   `json:"error"`
 	Message string `json:"message"`
 }
 
+// Login is the handler used to attempt to log a user into the api
 func (app *application) Login(w http.ResponseWriter, r *http.Request) {
 	type credentials struct {
 		UserName string `json:"email"`
@@ -22,16 +24,16 @@ func (app *application) Login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		app.errorLog.Println(err)
 		payload.Error = true
-		payload.Message = "invalid json or json missing"
+		payload.Message = "invalid json supplied, or json missing entirely"
 		_ = app.writeJSON(w, http.StatusBadRequest, payload)
 	}
 
-	//TODO: authenticate
+	// TODO authenticate
 	app.infoLog.Println(creds.UserName, creds.Password)
 
-	//TODO: send back response
+	// send back a response
 	payload.Error = false
-	payload.Message = "Singed in"
+	payload.Message = "Signed in"
 
 	err = app.writeJSON(w, http.StatusOK, payload)
 	if err != nil {

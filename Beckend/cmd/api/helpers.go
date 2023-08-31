@@ -7,8 +7,9 @@ import (
 	"net/http"
 )
 
+// readJSON tries to read the body of a request and converts it into JSON
 func (app *application) readJSON(w http.ResponseWriter, r *http.Request, data interface{}) error {
-	maxBytes := 1048579 //1 MB
+	maxBytes := 1048576 // one megabyte
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
 
 	dec := json.NewDecoder(r.Body)
@@ -19,15 +20,16 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, data in
 
 	err = dec.Decode(&struct{}{})
 	if err != io.EOF {
-		return errors.New("body must have onle a single json value")
+		return errors.New("body must have only a single json value")
 	}
+
 	return nil
 }
 
+// writeJSON takes a response status code and aribitrary data and writes a json response to the client
 func (app *application) writeJSON(w http.ResponseWriter, status int, data interface{}, headers ...http.Header) error {
-
-	out, err := json.MarshalIndent(data, "", "\t") //Marshal
-	if (err) != nil {
+	out, err := json.MarshalIndent(data, "", "\t")
+	if err != nil {
 		return err
 	}
 
@@ -47,6 +49,8 @@ func (app *application) writeJSON(w http.ResponseWriter, status int, data interf
 	return nil
 }
 
+// errorJSON takes an error, and optionally a response status code, and generates and sends
+// a json error response
 func (app *application) errorJSON(w http.ResponseWriter, err error, status ...int) {
 	statusCode := http.StatusBadRequest
 
