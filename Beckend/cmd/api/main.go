@@ -34,7 +34,6 @@ func main() {
 	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
 	dsn := os.Getenv("DSN")
-	fmt.Println("dsn stanje", dsn)
 	db, err := driver.ConnectPostgres(dsn)
 	if err != nil {
 		log.Fatal("Cannot connect to database")
@@ -46,7 +45,7 @@ func main() {
 		infoLog:     infoLog,
 		errorLog:    errorLog,
 		userModels:  data.New(db.SQL).User,
-		tokenModels: data.Token{},
+		tokenModels: data.New(db.SQL).Token,
 	}
 
 	err = app.serve()

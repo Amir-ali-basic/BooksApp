@@ -6,8 +6,9 @@ import (
 
 // jsonResponse is the type used for generic JSON responses
 type jsonResponse struct {
-	Error   bool   `json:"error"`
-	Message string `json:"message"`
+	Error   bool        `json:"error"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data`
 }
 
 // Login is the handler used to attempt to log a user into the api

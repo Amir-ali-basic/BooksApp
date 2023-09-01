@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"time"
 	"vue-api/internal/data"
 
 	"github.com/go-chi/chi/v5"
@@ -40,6 +41,49 @@ func (app *application) routes() http.Handler {
 			return
 		}
 		app.writeJSON(w, http.StatusOK, all)
+	})
+
+	mux.Get("/users/add", func(w http.ResponseWriter, r *http.Request) {
+		var u = data.User{
+			Email:     "you@there.com",
+			FirstName: "You",
+			LastName:  "There",
+			Password:  "password",
+		}
+
+		app.infoLog.Println("Adding user...")
+
+		id, err := app.userModels.Insert(u)
+		if err != nil {
+			app.errorLog.Println(err)
+			app.errorJSON(w, err, http.StatusForbidden)
+			return
+		}
+
+		app.infoLog.Println("Got back id of", id)
+		newUser, _ := app.userModels.GetById(id)
+		app.writeJSON(w, http.StatusOK, newUser)
+	})
+
+	mux.Get("/test-generate-token", func(w http.ResponseWriter, r *http.Request) {
+		token, err := app.tokenModels.GenerateToken(2, 60*time.Minute)
+
+		if err != nil {
+			app.errorLog.Println(err)
+			return
+		}
+
+		token.Email = "admin@example.com"
+		token.CreatedAt = time.Now()
+		token.UpdatedAt = time.Now()
+
+		payload := jsonResponse{
+			Error:   false,
+			Message: "success",
+			Data:    token,
+		}
+
+		app.writeJSON(w, http.StatusOK, payload)
 	})
 
 	return mux
