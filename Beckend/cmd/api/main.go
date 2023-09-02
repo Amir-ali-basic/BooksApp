@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"vue-api/internal/data"
 	"vue-api/internal/driver"
 )
 
@@ -17,10 +18,11 @@ type config struct {
 // various parts of our application. We will share this information in most
 // cases by using this type as the receiver for functions
 type application struct {
-	config   config
-	infoLog  *log.Logger
-	errorLog *log.Logger
-	db       *driver.DB
+	config      config
+	infoLog     *log.Logger
+	errorLog    *log.Logger
+	userModels  data.User
+	tokenModels data.Token
 }
 
 // main is the main entry point for our application
@@ -31,17 +33,19 @@ func main() {
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
-	dsn := "host=localhost port=5432 user=postgres password=password dbname=vueapi sslmode=disable timezone=UTC connect_timeout=5"
+	dsn := os.Getenv("DSN")
 	db, err := driver.ConnectPostgres(dsn)
 	if err != nil {
 		log.Fatal("Cannot connect to database")
 	}
+	defer db.SQL.Close()
 
 	app := &application{
-		config:   cfg,
-		infoLog:  infoLog,
-		errorLog: errorLog,
-		db:       db,
+		config:      cfg,
+		infoLog:     infoLog,
+		errorLog:    errorLog,
+		userModels:  data.New(db.SQL).User,
+		tokenModels: data.New(db.SQL).Token,
 	}
 
 	err = app.serve()

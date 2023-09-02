@@ -17,7 +17,7 @@ type DB struct {
 var dbConn = &DB{}
 
 const maxOpenDbConn = 5
-const maxIdleConn = 5
+const maxIdleDbConn = 5
 const maxDbLifeTime = 5 * time.Minute
 
 func ConnectPostgres(dsn string) (*DB, error) {
@@ -27,8 +27,9 @@ func ConnectPostgres(dsn string) (*DB, error) {
 	}
 
 	d.SetMaxOpenConns(maxOpenDbConn)
-	d.SetMaxIdleConns(maxIdleConn)
+	d.SetMaxIdleConns(maxIdleDbConn)
 	d.SetConnMaxLifetime(maxDbLifeTime)
+	fmt.Println("Error! dsn", dsn)
 
 	err = testDB(d)
 	if err != nil {
@@ -42,10 +43,10 @@ func ConnectPostgres(dsn string) (*DB, error) {
 func testDB(d *sql.DB) error {
 	err := d.Ping()
 	if err != nil {
-		fmt.Println("Error", err)
+		fmt.Println("Error!", err)
 		return err
 	}
-	fmt.Println("*** Pinged database succsesfully! ***")
+	fmt.Println("*** Pinged database successfully! ***")
 
 	return nil
 }
