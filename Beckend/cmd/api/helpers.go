@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"strings"
 )
 
 // readJSON tries to read the body of a request and converts it into JSON
@@ -58,9 +59,25 @@ func (app *application) errorJSON(w http.ResponseWriter, err error, status ...in
 		statusCode = status[0]
 	}
 
+	var customeErr error
+
+	switch {
+	case strings.Contains(error.Error(), "SQLSTATE 23505"):
+		customeErr = errors.New("duplicate values violates uniqe constrains")
+		statusCode = http.StatusForbidden
+	case strings.Contains(err.Error(), "SQLSTATE 22001"):
+		customeErr = errors.New("the value you are trying to insert is too long")
+		statusCode = http.StatusForbidden
+	case strings.Contains(err.Error(), "SQLSTATE 23403"):
+		customeErr = errors.New("foreigen key violation")
+		statusCode = http.StatusForbidden
+	default:
+		customeErr = err
+	}
+
 	var payload jsonResponse
 	payload.Error = true
-	payload.Message = err.Error()
+	payload.Message = customeErr.Error()
 
 	app.writeJSON(w, statusCode, payload)
 }
