@@ -27,7 +27,7 @@ func (t *Token) GetByToken(plainText string) (*Token, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeOut)
 	defer cancel()
 
-	query := `SELECT id, user_id, emil, token, token_hash,created_at,updated_at,expiry from tokens where token = $1`
+	query := `SELECT id, user_id, email, token, token_hash,created_at,updated_at,expiry from tokens where token = $1`
 
 	var token Token
 	row := db.QueryRowContext(ctx, query, plainText)
