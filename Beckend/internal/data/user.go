@@ -22,6 +22,7 @@ type User struct {
 	Password  string    `json:"password"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+	Tokens    []*Token  `json:"tokens,omitempty"`
 }
 
 func (u *User) GetAll() ([]*User, error) {
@@ -51,10 +52,54 @@ func (u *User) GetAll() ([]*User, error) {
 			return nil, err
 		}
 
+		// Fetch tokens for the current user
+		tokens, err := u.getTokensForUser(user.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		// Assign the tokens to the user
+		user.Tokens = tokens
+
 		users = append(users, &user)
 	}
 
 	return users, nil
+}
+
+func (u *User) getTokensForUser(userID int) ([]*Token, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeOut)
+	defer cancel()
+
+	query := "SELECT id, user_id, email, token, token_hash, created_at, updated_at, expiry FROM tokens WHERE user_id = $1"
+
+	rows, err := db.QueryContext(ctx, query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tokens []*Token
+	for rows.Next() {
+		var token Token
+		err := rows.Scan(
+			&token.ID,
+			&token.UserID,
+			&token.Email,
+			&token.Token,
+			&token.TokenHash,
+			&token.CreatedAt,
+			&token.UpdatedAt,
+			&token.Expiry,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		tokens = append(tokens, &token)
+	}
+
+	return tokens, nil
 }
 
 func (u *User) getByQuery(query string, args ...interface{}) (*User, error) {
@@ -76,6 +121,15 @@ func (u *User) getByQuery(query string, args ...interface{}) (*User, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// Fetch tokens for the user
+	tokens, err := u.getTokensForUser(user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Assign the tokens to the user
+	user.Tokens = tokens
 
 	return &user, nil
 }
