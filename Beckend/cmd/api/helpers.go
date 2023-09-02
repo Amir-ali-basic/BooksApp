@@ -59,25 +59,25 @@ func (app *application) errorJSON(w http.ResponseWriter, err error, status ...in
 		statusCode = status[0]
 	}
 
-	var customeErr error
+	var customErr error
 
 	switch {
-	case strings.Contains(error.Error(), "SQLSTATE 23505"):
-		customeErr = errors.New("duplicate values violates uniqe constrains")
+	case strings.Contains(err.Error(), "SQLSTATE 23505"):
+		customErr = errors.New("duplicate value violates unique constraint")
 		statusCode = http.StatusForbidden
 	case strings.Contains(err.Error(), "SQLSTATE 22001"):
-		customeErr = errors.New("the value you are trying to insert is too long")
+		customErr = errors.New("the value you are trying to insert is too large")
 		statusCode = http.StatusForbidden
-	case strings.Contains(err.Error(), "SQLSTATE 23403"):
-		customeErr = errors.New("foreigen key violation")
+	case strings.Contains(err.Error(), "SQLSTATE 23503"):
+		customErr = errors.New("foreign key violation")
 		statusCode = http.StatusForbidden
 	default:
-		customeErr = err
+		customErr = err
 	}
 
 	var payload jsonResponse
 	payload.Error = true
-	payload.Message = customeErr.Error()
+	payload.Message = customErr.Error()
 
 	app.writeJSON(w, statusCode, payload)
 }
