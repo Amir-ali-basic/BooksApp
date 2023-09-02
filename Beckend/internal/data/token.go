@@ -12,6 +12,17 @@ import (
 	"time"
 )
 
+type TokenStore interface {
+	GetByToken(plainText string) (*Token, error)
+	GetUserForToken(token Token) (*User, error)
+	GenerateToken(userID int, ttl time.Duration) (*Token, error)
+	AuthenticateToken(r *http.Request) (*User, error)
+	InsertToken(token Token, u User) error
+	DeleteByToken(plainText string) error
+	ValidToken(plainText string) (bool, error)
+	GetAllTokens() ([]Token, error)
+}
+
 type Token struct {
 	ID        int       `json:"id"`
 	UserID    int       `json:"user_id"`
