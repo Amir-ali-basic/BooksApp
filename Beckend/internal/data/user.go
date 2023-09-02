@@ -24,18 +24,6 @@ type User struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-// Models holds the various models
-type Models struct {
-	User User
-}
-
-// New initializes the models
-func New(dbPool *sql.DB) Models {
-	return Models{
-		User: User{},
-	}
-}
-
 func (u *User) GetAll() ([]*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeOut)
 	defer cancel()
@@ -97,7 +85,7 @@ func (u *User) GetByEmail(email string) (*User, error) {
 	return u.getByQuery(query, email)
 }
 
-func (u *User) GetById(id string) (*User, error) {
+func (u *User) GetById(id int) (*User, error) {
 	query := "SELECT id, email, first_name, last_name, password, created_at, updated_at FROM users WHERE id = $1"
 	return u.getByQuery(query, id)
 }
