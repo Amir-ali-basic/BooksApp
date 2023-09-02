@@ -39,13 +39,13 @@ func main() {
 		log.Fatal("Cannot connect to database")
 	}
 	defer db.SQL.Close()
-
+	models := data.New(db.SQL)
 	app := &application{
 		config:      cfg,
 		infoLog:     infoLog,
 		errorLog:    errorLog,
-		userModels:  data.New(db.SQL).User,
-		tokenModels: data.New(db.SQL).Token,
+		userModels:  models.User,
+		tokenModels: models.Token,
 	}
 
 	err = app.serve()

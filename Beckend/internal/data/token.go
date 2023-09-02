@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/base32"
 	"errors"
+	"fmt"
 	"math/rand"
 	"net/http"
 	"strings"
@@ -54,7 +55,7 @@ func (t *Token) GetUserForToken(token Token) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeOut)
 	defer cancel()
 
-	query := "SELECT id, email, first_name, last_name, password, created_at, updated_at FROM users WHERE email = $1"
+	query := "SELECT id, email, first_name, last_name, password, created_at, updated_at FROM users WHERE id = $1"
 
 	var user User
 	row := db.QueryRowContext(ctx, query, token.UserID)
@@ -142,7 +143,7 @@ func (t *Token) InsertToken(token Token, u User) error {
 
 	token.Email = u.Email
 
-	stmt = `insert into tokens user_id, email, token, token_hash, created_at, updated_at, expiry
+	stmt = `insert into tokens (user_id, email, token, token_hash, created_at, updated_at, expiry)
 	 values($1, $2, $3, $4, $5, $6, $7)`
 
 	_, err = db.ExecContext(ctx, stmt,
@@ -175,20 +176,68 @@ func (t *Token) DeleteByToken(plainText string) error {
 }
 
 func (t *Token) ValidToken(plainText string) (bool, error) {
+	if t == nil {
+		return false, errors.New("token instance is nil")
+	}
+
+	// Check if the token exists in the database
 	token, err := t.GetByToken(plainText)
+	fmt.Println("token", token)
 	if err != nil {
-		return false, errors.New("no matching token found in ValidToken function")
+		return false, fmt.Errorf("error getting token: %v", err)
 	}
 
-	_, err = t.GetUserForToken(*token)
-	if err != nil {
-		return false, errors.New("no matching user found in ValidToken function")
-	}
-
+	// Check if the token has expired
 	if token.Expiry.Before(time.Now()) {
 		return false, errors.New("expired token")
 	}
 
-	return true, nil
+	// Check if the associated user exists in the database
+	_, err = t.GetUserForToken(*token)
+	if err != nil {
+		return false, fmt.Errorf("error getting user for token: %v", err)
+	}
 
+	// The token is valid
+	return true, nil
+}
+
+// GetAllTokens retrieves all tokens from the "tokens" table.
+func (t *Token) GetAllTokens() ([]Token, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeOut)
+	defer cancel()
+
+	query := `SELECT id, user_id, email, token, token_hash, created_at, updated_at, expiry FROM tokens`
+
+	rows, err := db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tokens []Token
+
+	for rows.Next() {
+		var token Token
+		err := rows.Scan(
+			&token.ID,
+			&token.UserID,
+			&token.Email,
+			&token.Token,
+			&token.TokenHash,
+			&token.CreatedAt,
+			&token.UpdatedAt,
+			&token.Expiry,
+		)
+		if err != nil {
+			return nil, err
+		}
+		tokens = append(tokens, token)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return tokens, nil
 }

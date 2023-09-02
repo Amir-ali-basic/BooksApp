@@ -86,5 +86,74 @@ func (app *application) routes() http.Handler {
 		app.writeJSON(w, http.StatusOK, payload)
 	})
 
+	mux.Get("/test-save-token", func(w http.ResponseWriter, r *http.Request) {
+		token, err := app.tokenModels.GenerateToken(2, 60*time.Minute)
+		if err != nil {
+			app.errorLog.Println(err)
+			return
+		}
+
+		user, err := app.userModels.GetById(2)
+		if err != nil {
+			app.errorLog.Println(err)
+			return
+		}
+
+		token.UserID = user.ID
+		token.CreatedAt = time.Now()
+		token.UpdatedAt = time.Now()
+
+		err = token.InsertToken(*token, *user)
+		if err != nil {
+			app.errorLog.Println(err)
+			return
+		}
+
+		payload := jsonResponse{
+			Error:   false,
+			Message: "success",
+			Data:    token,
+		}
+
+		app.writeJSON(w, http.StatusOK, payload)
+	})
+
+	mux.Get("/test-validate-token", func(w http.ResponseWriter, r *http.Request) {
+		tokenToValidate := r.URL.Query().Get("token")
+		valid, err := app.tokenModels.ValidToken(tokenToValidate)
+		if err != nil {
+			app.errorJSON(w, err, http.StatusUnauthorized) // Return an unauthorized status on validation failure
+			return
+		}
+
+		payload := jsonResponse{
+			Error:   false,
+			Message: "Token is valid",
+			Data:    valid,
+		}
+
+		app.writeJSON(w, http.StatusOK, payload)
+	})
+	mux.Get("/get-by-token", func(w http.ResponseWriter, r *http.Request) {
+		userToken := r.URL.Query().Get("token")
+		fmt.Println("uwer token", userToken)
+
+		// Call the GetByToken function to retrieve the token details
+		retrievedToken, err := app.tokenModels.GetByToken(userToken)
+		if err != nil {
+			// If there's an error or no matching token found, return an unauthorized status
+			app.errorJSON(w, err, http.StatusUnauthorized)
+			return
+		}
+
+		payload := jsonResponse{
+			Error:   false,
+			Message: "Token is valid",
+			Data:    retrievedToken, // Return the retrieved token details
+		}
+
+		app.writeJSON(w, http.StatusOK, payload)
+	})
+
 	return mux
 }
