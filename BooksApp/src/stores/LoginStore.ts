@@ -8,7 +8,6 @@ export const useLoginStore = defineStore('login-store', () => {
 
   function loginSubmitHandler(payload: any) {
     return login(payload).then((data: any) => {
-      console.log('data from store', data)
       return data
     })
   }
