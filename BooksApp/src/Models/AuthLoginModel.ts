@@ -1,7 +1,7 @@
-export class AuthLoginDTO {
+export class AuthLoginModel {
   email: string | null
   password: string | null
-  constructor(data?: AuthLoginDTO) {
+  constructor(data?: AuthLoginModel) {
     this.email = data?.email ? data.email : null
     this.password = data?.password ? data.password : null
   }
