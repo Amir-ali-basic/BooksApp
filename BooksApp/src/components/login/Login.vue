@@ -3,6 +3,7 @@
     <div class="row">
       <div class="col-lg-12">
         <h1 class="mt-5">Login</h1>
+        <h1>{{ authStore.userToken }}</h1>
         <hr />
         <FormTag name="myForm" event="submitEvent" @submitEvent="submitHandler">
           <TextInput
@@ -34,7 +35,7 @@
 import { defineComponent } from 'vue'
 import TextInput from '../common/TextInput.vue'
 import FormTag from '../common/FormTag.vue'
-import { useLoginStore } from '@/stores/LoginStore'
+import { useAuthStore } from '@/stores/AuthStore'
 
 export default defineComponent({
   name: 'LoginComponent',
@@ -44,17 +45,18 @@ export default defineComponent({
   },
 
   setup() {
-    const loginStore = useLoginStore()
-    const loginPresentable = loginStore.loginData
+    const authStore = useAuthStore()
+    const loginPresentable = authStore.loginData
 
     function submitHandler() {
       console.log('submitHandler', loginPresentable)
-      loginStore.loginSubmitHandler(loginPresentable)
+      authStore.loginSubmitHandler(loginPresentable)
     }
 
     return {
       submitHandler,
-      loginPresentable
+      loginPresentable,
+      authStore
     }
   }
 })

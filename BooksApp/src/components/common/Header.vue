@@ -1,7 +1,7 @@
 <template>
   <nav class="navbar navbar-expand-lg bg-body-tertiary" data-bs-theme="dark">
     <div class="container-fluid">
-      <a class="navbar-brand" href="#">BooksApp</a>
+      <a class="navbar-brand" href="#">Book app</a>
       <button
         class="navbar-toggler"
         type="button"
@@ -21,7 +21,12 @@
             >
           </li>
           <li class="nav-item">
-            <router-link to="/login" class="nav-link" href="#">Login</router-link>
+            <router-link
+              :to="authStore.userToken === null ? '/login' : '/dashboard'"
+              class="nav-link"
+            >
+              {{ authStore.userToken === null ? 'Log in' : 'Log out' }}
+            </router-link>
           </li>
           <li class="nav-item">
             <a class="nav-link disabled">Disabled</a>
@@ -37,14 +42,16 @@
 </template>
 
 <script lang="ts">
+import { useAuthStore } from '@/stores/AuthStore'
 import { defineComponent } from 'vue'
 
 export default defineComponent({
-  name: 'HeaderComponent'
-  // Your component's logic here
+  name: 'HeaderComponent',
+  setup() {
+    const authStore = useAuthStore()
+    return {
+      authStore
+    }
+  }
 })
 </script>
-
-<style scoped>
-/* Your component's styles here */
-</style>

@@ -11,17 +11,18 @@ class ApiService {
         )
       ])
 
-      const data = await response.json()
-
       if (!response.ok) {
-        console.log('reponse', response)
-        console.log('reponse.status', response.status)
-
-        return { success: false, error: data.message, statusCode: response.status }
-      } else {
-        return { success: true, data }
+        const errorData = await response.json()
+        console.error('Request error:', errorData)
+        return { success: false, error: errorData.message, statusCode: response.status }
       }
+
+      const responseData = await response.json()
+      const processedData = responseData.data || responseData
+
+      return { success: true, data: processedData }
     } catch (error: any) {
+      console.error('Request error:', error.message)
       return { success: false, error: error.message }
     }
   }
@@ -45,6 +46,52 @@ class ApiService {
   ): Promise<ApiResponse<T>> {
     const requestOptions: RequestInit = {
       method: 'POST',
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    }
+
+    return this.request<T>(url, requestOptions)
+  }
+
+  async put<T>(
+    url: string,
+    payload: any,
+    headers: Record<string, string> = {}
+  ): Promise<ApiResponse<T>> {
+    const requestOptions: RequestInit = {
+      method: 'PUT',
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    }
+
+    return this.request<T>(url, requestOptions)
+  }
+
+  async delete<T>(url: string, headers: Record<string, string> = {}): Promise<ApiResponse<T>> {
+    const requestOptions: RequestInit = {
+      method: 'DELETE',
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json'
+      }
+    }
+
+    return this.request<T>(url, requestOptions)
+  }
+
+  async patch<T>(
+    url: string,
+    payload: any,
+    headers: Record<string, string> = {}
+  ): Promise<ApiResponse<T>> {
+    const requestOptions: RequestInit = {
+      method: 'PATCH',
       headers: {
         ...headers,
         'Content-Type': 'application/json'

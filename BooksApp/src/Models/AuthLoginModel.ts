@@ -1,8 +1,8 @@
 export class AuthLoginModel {
-  email: string | null
-  password: string | null
+  email: string | undefined
+  password: string | undefined
   constructor(data?: AuthLoginModel) {
-    this.email = data?.email ? data.email : null
-    this.password = data?.password ? data.password : null
+    this.email = data?.email ? data.email : undefined
+    this.password = data?.password ? data.password : undefined
   }
 }
